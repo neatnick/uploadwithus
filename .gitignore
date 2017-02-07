@@ -1,0 +1,12 @@
+.DS_Store
+*.pyc
+__pycache__
+
+# pypi building stuff
+MANIFEST
+.cache/
+dist/
+dist/*
+build/
+build/*
+*.egg-info
