@@ -3,7 +3,7 @@ Uploadwithus is a command line tool to facilitate keeping sendwithus templates
 and snippets code up to date with an emails repository.  The tool allows you to
 maintain your email templates and snippets under a version control system, and
 also allows separation of testing and production emails.  For more in depth
-information on its usage and features, check out the
+information on its usage and features, check out the README.
 
 Copyright (c) 2017, Nick Balboni.
 License: MIT (see LICENSE for details)
