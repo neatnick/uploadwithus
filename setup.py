@@ -30,4 +30,9 @@ setup(
         'Topic :: Communications :: Email',
         'Topic :: Utilities',
     ],
+    entry_points={
+        'console_scripts': [
+            'uploadwithus = uploadwithus:main',
+        ],
+    },
 )

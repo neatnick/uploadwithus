@@ -11,7 +11,9 @@ License: MIT (see LICENSE for details)
 
 import os
 import re
+import sys
 import yaml
+from cached_property import cached_property
 from sendwithus import api as sendwithus_api
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
@@ -277,6 +279,8 @@ def parse_args():
     parser = ArgumentParser(
         formatter_class=ArgumentDefaultsHelpFormatter,
         description=__doc__ )
+    parser.add_argument('-v', '--version', action='store_true',
+        help='print out version string and exit')
     parser.add_argument('-i', '--info', action='store_true',
         help='print out the sendwithus ids and names of the templates and '
         'snippets included in the templates yaml file')
@@ -294,13 +298,16 @@ def parse_args():
 
 ### Main #######################################################################
 def main():
+    options = parse_args()
+    if options.version:
+        print('uploadwithus', __version__)
+        sys.exit(0)
     try: # initiate api key from environmental variable
         api_key = os.environ['SENDWITHUS_API_KEY']
     except KeyError as e:
         print("SENDWITHUS_API_KEY environmental variable not found.")
     else:
-        _api = API()
-        options = parse_args()
+        _api = API(api_key)
         if options.info:
             _api.get_sendwithus_ids()
         if options.update_dev:
