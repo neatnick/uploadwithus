@@ -10,7 +10,7 @@ To do this, the tool interacts with a local repository holding snippet and templ
 
 ## Installation
 
-The tool requires python 3.  Once you have python 3 set up, installation is easy, just run: `pip install uploadwithus`.
+The tool requires can run with `python 2.7` or `python 3`.  To install, just run: `pip install uploadwithus`.
 
 ## Project Setup
 
@@ -27,7 +27,8 @@ In order to use the `uploadwithus` tool, the project containing your templates a
 │   └── template2
 │       └── general.html
 ├── snippet_info.yaml
-└── template_info.yaml
+├── template_info.yaml
+└── config.yaml (optional)
 ```
 
 #### Snippets
@@ -61,10 +62,29 @@ template2:
       subject: null
 ```
 
+#### Config
+
+The script takes an optional `config.yaml` file.  This file allows you a place to declare your sendwithus api key and list snippets that you would like to be expanded before your templates get uploaded to sendwithus.  A sample config file is shown below:
+
+```yaml
+api_key: test_123
+expand:
+  - snippet1
+```
+
+Templates containing snippets listed under the `expand` key will have those snippets expanded to their `html` equivalent before they get uploaded to sendwithus.  This is valuable for a couple of reasons:  
+- One reason is that sendwithus performs HTML validation for any templates that get uploaded through their api.  So, if your templates break validation (e.g. one of your snippets contains the templates `<head>` tag), a solution could be to add that snippet to the `expand` key so that the template will pass validation at the time it is uploaded.  
+- Another use case arrises because sendwithus does not track clicked links in snippets during an A/B test.  Expanding snippets would allow you to see links that get clicked in these snippets.
+
 #### API Key
 
-The script requires access to your api key in order to upload to sendwithus.  In order to provide this, create an environmental variable called `SENDWITHUS_API_KEY` and set it to one of your sendwithus api keys.
+The script requires access to your api key in order to upload to sendwithus.  If you don't want to provide this in the config file, you can create an environmental variable called `SENDWITHUS_API_KEY` and set it to one of your sendwithus api keys.
 
 ## Usage
 
 To view usage run `uploadwithus --help`.
+
+---
+
+###### Questions? Comments? Suggestions? Concerns?
+###### Email me at `nbalboni2@gmail.com`.
