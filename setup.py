@@ -3,20 +3,28 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import uploadwithus
-
 setup(
     name='uploadwithus',
-    version=uploadwithus.__version__,
+    version='0.2.4',
     description='CLI to facilitate keeping sendwithus templates and snippets code up to date with an emails repository.',
-    long_description=uploadwithus.__doc__,
-    author=uploadwithus.__author__,
+    long_description="""\
+Uploadwithus is a command line tool to facilitate keeping sendwithus templates
+and snippets code up to date with an emails repository.  The tool allows you to
+maintain your email templates and snippets under a version control system, and
+also allows separation of testing and production emails.  For more in depth
+information on its usage and features, check out the README.
+
+Copyright (c) 2017, Nick Balboni.
+License: MIT (see LICENSE for details)
+    """,
+    author='Nick Balboni',
     author_email='nbalboni2@gmail.com',
     url='https://github.com/SwankSwashbucklers/uploadwithus',
     install_requires=[
         'PyYAML >= 3.11',
         'sendwithus >= 1.8.0',
         'cached-property >= 1.3.0',
+        'future >= 0.16.0',
     ],
     py_modules=['uploadwithus'],
     scripts=['uploadwithus.py'],
