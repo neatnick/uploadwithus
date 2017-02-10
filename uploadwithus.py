@@ -23,7 +23,7 @@ from sendwithus import api as sendwithus_api
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 __author__ = 'Nick Balboni'
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 __license__ = 'MIT'
 
 
