@@ -9,6 +9,11 @@ Copyright (c) 2017, Nick Balboni.
 License: MIT (see LICENSE for details)
 """
 
+# python 2 support
+from __future__ import print_function, unicode_literals
+from builtins import input
+import errno
+
 import os
 import re
 import sys
@@ -20,6 +25,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 __author__ = 'Nick Balboni'
 __version__ = '0.1.0'
 __license__ = 'MIT'
+
 
 ### Constants ##################################################################
 DEFAULT_TPL_VER = 'general'
@@ -43,8 +49,8 @@ SNP_NOT_FOUND_ERR = 'snippet < {} > not found'
 
 
 ### Helpers ####################################################################
-def log(template, *args, error=False):
-    status = 'ERROR' if error else 'DEBUG'
+def log(template, *args, **kwargs):
+    status = 'ERROR' if 'error' in kwargs and kwargs['error'] else 'DEBUG'
     print(status, ':', template.format(*args))
 
 def snippet_replace(content, snippet):
@@ -69,6 +75,7 @@ def get_content(name, version=None, snippet=False):
             log(TPL_NOT_FOUND_ERR, name, error=True)
         else:
             log(VER_NOT_FOUND_ERR, name, version, error=True)
+
 
 ### The Meat and Potatos #######################################################
 class API:
@@ -298,13 +305,15 @@ def main():
     if options.version:
         print('uploadwithus', __version__)
         sys.exit(0)
-    # read config file
     config = {}
-    try:
+    try: # read config file
         with open('config.yaml', 'r') as f:
             config = yaml.load(f)
-    except FileNotFoundError:
-        log('config file not found')
+    except IOError as e:
+        if e.errno == errno.ENOENT: # FileNotFoundError
+            log('config file not found')
+        else:
+            raise
     if not 'api_key' in config:
         try: # initiate api key from environmental variable
             config['api_key'] = os.environ['SENDWITHUS_API_KEY']
