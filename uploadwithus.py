@@ -47,26 +47,9 @@ def log(template, *args, error=False):
     status = 'ERROR' if error else 'DEBUG'
     print(status, ':', template.format(*args))
 
-def sendwithus_hack(content, snippet):
+def snippet_replace(content, snippet):
     reg = r'{%\s+snippet\s+[\'\"]{1}' + snippet + '[\'\"]{1}\s+%}'
     return re.sub(reg, get_content(snippet, snippet=True), content)
-
-def parse_content(content):
-    # hack cause sendwithus require templates from the api to have a head
-    snippets_to_replace = [
-        'tablelist_wrapper_top',
-        'nightpro_wrapper_top',
-        'general_wrapper_bottom'
-    ]
-    for snippet in snippets_to_replace:
-        content = sendwithus_hack(content, snippet)
-    # regex replace
-    ptn = re.compile(r'{%\s+snippet\s+[\'\"]{1}(.*?)[\'\"]{1}\s+%}')
-    for match in ptn.finditer(content):
-        new_name = 'test_' + match.group(1)
-        new_snippet = match.group(0).replace(match.group(1), new_name)
-        content = content.replace(match.group(0), new_snippet)
-    return content
 
 def get_content(name, version=None, snippet=False):
     """ throws FileNotFoundError """
@@ -89,8 +72,21 @@ def get_content(name, version=None, snippet=False):
 
 ### The Meat and Potatos #######################################################
 class API:
-    def __init__(self, key):
+    def __init__(self, key, expands):
         self.api = sendwithus_api(api_key=key)
+        self.expands = expands
+
+    def parse_content(self, content):
+        # expand snippets before uploading
+        for snippet in self.expands:
+            content = snippet_replace(content, snippet)
+        # regex replace
+        ptn = re.compile(r'{%\s+snippet\s+[\'\"]{1}(.*?)[\'\"]{1}\s+%}')
+        for match in ptn.finditer(content):
+            new_name = 'test_' + match.group(1)
+            new_snippet = match.group(0).replace(match.group(1), new_name)
+            content = content.replace(match.group(0), new_snippet)
+        return content
 
     ### TEMPLATES ##############################################################
     @cached_property
@@ -117,7 +113,7 @@ class API:
             html = get_content(template, version=DEFAULT_TPL_VER)
             subject = self.local_templates[template]['subject']
             if development:
-                html = parse_content(html)
+                html = self.parse_content(html)
                 subject = DEV_SUBJECT_TPL(subject)
                 template = DEV_NAME_TPL(template)
             # create new template
@@ -148,7 +144,7 @@ class API:
             if subject is None:
                 subject = self.local_templates[template]['subject']
             if development:
-                html = parse_content(html)
+                html = self.parse_content(html)
                 subject = DEV_SUBJECT_TPL(subject)
                 template = DEV_NAME_TPL(template)
             self.api.create_new_version(
@@ -206,7 +202,7 @@ class API:
                     template_id = self.sendwithus_templates[name]['id']
                     version_id = self.sendwithus_templates[name]['versions'][version]
                     if development:
-                        html = parse_content(html)
+                        html = self.parse_content(html)
                         subject = DEV_SUBJECT_TPL(subject)
                     self.api.update_template_version(
                         version, subject, template_id, version_id, html=html
@@ -242,7 +238,7 @@ class API:
                 try:
                     html = get_content(snippet, snippet=True)
                     if development:
-                        html = parse_content(html)
+                        html = self.parse_content(html)
                     resp = self.api.create_snippet(name, html)
                     resp.raise_for_status()
                 except Exception as e:
@@ -264,7 +260,7 @@ class API:
             try:
                 html = get_content(snippet, snippet=True)
                 if development:
-                    html = parse_content(html)
+                    html = self.parse_content(html)
                 snippet_id = self.sendwithus_snippets[name]
                 resp = self.api.update_snippet(snippet_id, name, html)
                 resp.raise_for_status()
@@ -302,26 +298,36 @@ def main():
     if options.version:
         print('uploadwithus', __version__)
         sys.exit(0)
-    try: # initiate api key from environmental variable
-        api_key = os.environ['SENDWITHUS_API_KEY']
-    except KeyError as e:
-        print("SENDWITHUS_API_KEY environmental variable not found.")
-    else:
-        _api = API(api_key)
-        if options.info:
-            _api.get_sendwithus_ids()
-        if options.update_dev:
-            _api.update_snippets(development=True)
-            _api.update_templates(development=True)
-        if options.update_prod:
-            resp = input(
-                'NOTE: this option modifies production emails, use only when '
-                'deploying development code.  Type `I understand` to continue.'
-                '\n-->  '
-            )
-            if resp == 'I understand':
-                _api.update_snippets(development=False)
-                _api.update_templates(development=False)
+    # read config file
+    config = {}
+    try:
+        with open('config.yaml', 'r') as f:
+            config = yaml.load(f)
+    except FileNotFoundError:
+        log('config file not found')
+    if not 'api_key' in config:
+        try: # initiate api key from environmental variable
+            config['api_key'] = os.environ['SENDWITHUS_API_KEY']
+        except KeyError as e:
+            log('SENDWITHUS_API_KEY environmental variable not found.', error=True)
+            sys.exit(1)
+    if not 'expand' in config:
+        config['expand'] = []
+    _api = API(config['api_key'], config['expand'])
+    if options.info:
+        _api.get_sendwithus_ids()
+    if options.update_dev:
+        _api.update_snippets(development=True)
+        _api.update_templates(development=True)
+    if options.update_prod:
+        resp = input(
+            'NOTE: this option modifies production emails, use only when '
+            'deploying development code.  Type `I understand` to continue.'
+            '\n-->  '
+        )
+        if resp == 'I understand':
+            _api.update_snippets(development=False)
+            _api.update_templates(development=False)
 
 if __name__ == '__main__':
     main()
