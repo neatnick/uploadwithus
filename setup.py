@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name='uploadwithus',
-    version='0.2.4',
+    version='0.2.5',
     description='CLI to facilitate keeping sendwithus templates and snippets code up to date with an emails repository.',
     long_description="""\
 Uploadwithus is a command line tool to facilitate keeping sendwithus templates

@@ -11,8 +11,11 @@ License: MIT (see LICENSE for details)
 
 # python 2 support
 from __future__ import print_function, unicode_literals
-from builtins import input
-import errno
+try:
+    from builtins import input
+    import errno
+except ImportError:
+    pass
 
 import os
 import re
@@ -23,7 +26,7 @@ from sendwithus import api as sendwithus_api
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 __author__ = 'Nick Balboni'
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 __license__ = 'MIT'
 
 
